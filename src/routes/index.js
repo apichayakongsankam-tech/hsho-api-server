@@ -6,7 +6,7 @@ const playerRoutes = require('./player.routes');
 const storeRoutes = require('./store.routes');
 const inventoryRoutes = require('./inventory.routes');
 const immortalRoutes = require('./Immortal.routes');
-const gameRoutes = require('./game.routes'); // เรียกใช้งานไฟล์ game.routes.js ที่หาเจอแล้ว
+const gameRoutes = require('./game.routes'); // ลิงก์ไปยังไฟล์ game.routes.js ที่เราแก้ไข
 const gachaRoutes = require('./gacha.routes');
 
 const router = express.Router();
@@ -16,19 +16,19 @@ const LOOT_BOX_FILE_MAP = {
   Bullet_Gacha: 'static/pots/bullet.json',
 };
 
-// เส้นทางหลักที่กระจายไปตามระบบต่างๆ ของเกม
+// จัดเส้นทางกระจายส่งต่อข้อมูลไปยังเราเตอร์ลูก
 router.use('/live/player', playerRoutes);
 router.use('/live/player', inventoryRoutes);
-router.use('/live', gameRoutes); // รองรับ Path /live ของระบบเกมและหาห้อง
+router.use('/live', gameRoutes); // รองรับ Path /live/matchmaking อัตโนมัติ
 router.use('/live', storeRoutes);
 router.use('/live', immortalRoutes);
 router.use('/live/lootboxgo', gachaRoutes);
 
-// เส้นทางสำหรับดึงไฟล์ Static JSON ของผู้เล่น
+// การดึงข้อมูล Static JSON ของตัวละครและไอเทมติดตัว
 router.use('/live/immortal/get', staticJson.serve('static/player/immortal.json'));
 router.use('/live/player/curserelic/get', staticJson.serve('static/player/curserelic.json'));
 
-// ระบบเปิดสุ่มกาชา (Loot box)
+// ระบบสุ่มตู้กาชา (Loot box)
 router.get('/live/lootboxgo/api/items', (req, res) => {
   const file = LOOT_BOX_FILE_MAP[req.query.loot_box_short_code];
   if (!file) {
