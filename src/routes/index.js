@@ -1,36 +1,27 @@
-// เพิ่ม Route นี้เข้าไปในไฟล์ game.routes.js ของคุณ
-// หมายเหตุ: ปรับเปลี่ยน '/matchmaking' ให้ตรงกับ URL Endpoint ที่ตัวเกมเรียกใช้งานจริง (เช่น '/quickmatch' หรือ '/lobby/search')
-router.post('/matchmaking', async (req, res) => {
-    try {
-        const { Type, State, Data, SteamID, Name } = req.body;
+// แปะเพิ่มลงในไฟล์ index.js ก่อนบรรทัด module.exports = router;
 
-        // ตรวจสอบโครงสร้างข้อมูลที่ดักได้ตามภาพ
-        if (Type === 'QuickMatchMaking' && State === 'GetSearchingState') {
-            console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังค้นหาห้อง...`);
+// หมายเหตุ: เปลี่ยน '/matchmaking' ให้ตรงกับ URL path ที่ดักได้จริง (เช่น '/matchmake', '/lobby/search')
+router.post('/live/matchmaking', async (req, res) => {
+  try {
+    const { Type, State, Data, SteamID, Name } = req.body;
 
-            // ตอบกลับในรูปแบบ JSON โครงสร้างตามภาพที่ได้จากตัวเกม
-            return res.json({
-                data: {
-                    logged: true
-                },
-                error: null,
-                status: 1
-            });
-        }
+    // ตรวจสอบโครงสร้างข้อมูลที่ดักได้จากในภาพ
+    if (Type === 'QuickMatchMaking' && State === 'GetSearchingState') {
+      console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังค้นหาห้อง...`);
 
-        // หาก Request ส่งมาแต่ไม่ใช่แบบหาห้องด่วน
-        return res.status(400).json({ 
-            data: null,
-            error: "Invalid matchmaking type", 
-            status: 0 
-        });
-
-    } catch (err) {
-        console.error('[Matchmaking Error]:', err.message);
-        return res.status(500).json({ 
-            data: null,
-            error: "Internal Server Error", 
-            status: 0 
-        });
+      // ตอบกลับ JSON ตามรูปแบบที่เกมต้องการ
+      return res.json({
+        data: {
+          logged: true
+        },
+        error: null,
+        status: 1
+      });
     }
+
+    return res.status(400).json({ data: null, error: 'Invalid Type', status: 0 });
+  } catch (err) {
+    console.error('[Matchmaking Error]:', err.message);
+    return res.status(500).json({ data: null, error: 'Internal Server Error', status: 0 });
+  }
 });
