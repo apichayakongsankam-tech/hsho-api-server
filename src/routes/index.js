@@ -1,27 +1,40 @@
-// แปะเพิ่มลงในไฟล์ index.js ก่อนบรรทัด module.exports = router;
+const express = require('express');
 
-// หมายเหตุ: เปลี่ยน '/matchmaking' ให้ตรงกับ URL path ที่ดักได้จริง (เช่น '/matchmake', '/lobby/search')
-router.post('/live/matchmaking', async (req, res) => {
-  try {
-    const { Type, State, Data, SteamID, Name } = req.body;
+const staticJson = require('@utils/static-json.util');
 
-    // ตรวจสอบโครงสร้างข้อมูลที่ดักได้จากในภาพ
-    if (Type === 'QuickMatchMaking' && State === 'GetSearchingState') {
-      console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังค้นหาห้อง...`);
+const playerRoutes = require('./player.routes');
+const storeRoutes = require('./store.routes');
+const inventoryRoutes = require('./inventory.routes');
+const immortalRoutes = require('./Immortal.routes');
+const gameRoutes = require('./game.routes'); // เรียกใช้งานไฟล์ game.routes.js ที่หาเจอแล้ว
+const gachaRoutes = require('./gacha.routes');
 
-      // ตอบกลับ JSON ตามรูปแบบที่เกมต้องการ
-      return res.json({
-        data: {
-          logged: true
-        },
-        error: null,
-        status: 1
-      });
-    }
+const router = express.Router();
 
-    return res.status(400).json({ data: null, error: 'Invalid Type', status: 0 });
-  } catch (err) {
-    console.error('[Matchmaking Error]:', err.message);
-    return res.status(500).json({ data: null, error: 'Internal Server Error', status: 0 });
+const LOOT_BOX_FILE_MAP = {
+  Default_Gacha: 'static/pots/greedy.json',
+  Bullet_Gacha: 'static/pots/bullet.json',
+};
+
+// เส้นทางหลักที่กระจายไปตามระบบต่างๆ ของเกม
+router.use('/live/player', playerRoutes);
+router.use('/live/player', inventoryRoutes);
+router.use('/live', gameRoutes); // รองรับ Path /live ของระบบเกมและหาห้อง
+router.use('/live', storeRoutes);
+router.use('/live', immortalRoutes);
+router.use('/live/lootboxgo', gachaRoutes);
+
+// เส้นทางสำหรับดึงไฟล์ Static JSON ของผู้เล่น
+router.use('/live/immortal/get', staticJson.serve('static/player/immortal.json'));
+router.use('/live/player/curserelic/get', staticJson.serve('static/player/curserelic.json'));
+
+// ระบบเปิดสุ่มกาชา (Loot box)
+router.get('/live/lootboxgo/api/items', (req, res) => {
+  const file = LOOT_BOX_FILE_MAP[req.query.loot_box_short_code];
+  if (!file) {
+    return res.status(404).json({ error: 'Loot box not found' });
   }
+  return staticJson.serve(file)(req, res);
 });
+
+module.exports = router;
