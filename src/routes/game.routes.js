@@ -1,14 +1,16 @@
-// แปะเพิ่มลงในไฟล์ game.routes.js 
-// หมายเหตุ: ปรับเปลี่ยน '/matchmaking' ให้ตรงกับ URL Endpoint ส่วนท้ายที่ตัวเกมยิงมาจริง ๆ
+const express = require('express');
+const router = express.Router();
+
+// เส้นทางสำหรับดักจับการหาห้องด่วน (QuickMatchMaking) จากตัวเกม Home Sweet Home Online
 router.post('/matchmaking', async (req, res) => {
     try {
         const { Type, State, Data, SteamID, Name } = req.body;
 
-        // ตรวจสอบค่าที่ส่งมาจากตัวเกมตามที่เราดักได้ในภาพ
+        // ตรวจสอบโครงสร้างข้อมูลที่ดักจับได้ตามที่คุณส่งมาในภาพแรก
         if (Type === 'QuickMatchMaking' && State === 'GetSearchingState') {
-            console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังกดหาห้อง...`);
+            console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังกดค้นหาห้อง...`);
 
-            // ตอบกลับ JSON โครงสร้างเป๊ะ ๆ ตามที่ตัวเกมต้องการ
+            // ตอบกลับโครงสร้าง JSON สัญญาณตอบรับสำเร็จเป๊ะๆ ตามที่ตัวเกมต้องการ
             return res.json({
                 data: {
                     logged: true
@@ -18,7 +20,7 @@ router.post('/matchmaking', async (req, res) => {
             });
         }
 
-        // กรณีที่ Request ถูกส่งมาที่นี่แต่ไม่ใช่การหาห้องแบบ QuickMatchMaking
+        // กรณีที่มีการเรียกเข้ามาแต่ไม่ใช่การหาห้องด่วน
         return res.status(400).json({ 
             data: null, 
             error: "Invalid matchmaking request", 
@@ -34,3 +36,5 @@ router.post('/matchmaking', async (req, res) => {
         });
     }
 });
+
+module.exports = router;
