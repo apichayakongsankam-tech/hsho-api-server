@@ -1,37 +1,36 @@
-const express = require('express');
+// เพิ่ม Route นี้เข้าไปในไฟล์ game.routes.js ของคุณ
+// หมายเหตุ: ปรับเปลี่ยน '/matchmaking' ให้ตรงกับ URL Endpoint ที่ตัวเกมเรียกใช้งานจริง (เช่น '/quickmatch' หรือ '/lobby/search')
+router.post('/matchmaking', async (req, res) => {
+    try {
+        const { Type, State, Data, SteamID, Name } = req.body;
 
-const staticJson = require('@utils/static-json.util');
+        // ตรวจสอบโครงสร้างข้อมูลที่ดักได้ตามภาพ
+        if (Type === 'QuickMatchMaking' && State === 'GetSearchingState') {
+            console.log(`[Matchmaking] ผู้เล่น ${Name} (${SteamID}) กำลังค้นหาห้อง...`);
 
-const playerRoutes = require('./player.routes');
-const storeRoutes = require('./store.routes');
-const inventoryRoutes = require('./inventory.routes');
-const immortalRoutes = require('./Immortal.routes');
-const gameRoutes = require('./game.routes');
-const gachaRoutes = require('./gacha.routes');
+            // ตอบกลับในรูปแบบ JSON โครงสร้างตามภาพที่ได้จากตัวเกม
+            return res.json({
+                data: {
+                    logged: true
+                },
+                error: null,
+                status: 1
+            });
+        }
 
-const router = express.Router();
+        // หาก Request ส่งมาแต่ไม่ใช่แบบหาห้องด่วน
+        return res.status(400).json({ 
+            data: null,
+            error: "Invalid matchmaking type", 
+            status: 0 
+        });
 
-const LOOT_BOX_FILE_MAP = {
-  Default_Gacha: 'static/pots/greedy.json',
-  Bullet_Gacha: 'static/pots/bullet.json',
-};
-
-router.use('/live/player', playerRoutes);
-router.use('/live/player', inventoryRoutes);
-router.use('/live', gameRoutes);
-router.use('/live', storeRoutes);
-router.use('/live', immortalRoutes);
-router.use('/live/lootboxgo', gachaRoutes);
-
-router.use('/live/immortal/get', staticJson.serve('static/player/immortal.json'));
-router.use('/live/player/curserelic/get', staticJson.serve('static/player/curserelic.json'));
-
-router.get('/live/lootboxgo/api/items', (req, res) => {
-  const file = LOOT_BOX_FILE_MAP[req.query.loot_box_short_code];
-  if (!file) {
-    return res.status(404).json({ error: 'Loot box not found' });
-  }
-  return staticJson.serve(file)(req, res);
+    } catch (err) {
+        console.error('[Matchmaking Error]:', err.message);
+        return res.status(500).json({ 
+            data: null,
+            error: "Internal Server Error", 
+            status: 0 
+        });
+    }
 });
-
-module.exports = router;
