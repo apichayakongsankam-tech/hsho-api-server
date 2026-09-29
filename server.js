@@ -12,6 +12,9 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
+// --- HSHO Log API Routes ---
+
+// 1. ตรวจสอบสถานะบทลงโทษ/แบนของผู้เล่น
 app.post('/logapi/v1/check/penalty', (req, res) => {
     const gsid = req.body?.Player?.GSID || req.body?.GSID || req.body?.steamId || "";
     
@@ -30,6 +33,7 @@ app.post('/logapi/v1/check/penalty', (req, res) => {
     });
 });
 
+// 2. บันทึกประวัติการจับคู่/เข้าเล่นเกม
 app.post('/logapi/v1/add/matchlog', (req, res) => {
     return res.status(200).json({
         data: null,
@@ -38,6 +42,7 @@ app.post('/logapi/v1/add/matchlog', (req, res) => {
     });
 });
 
+// 3. ตรวจสอบสถานะเซิร์ฟเวอร์และผู้เล่นในระบบ
 app.post('/logapi/v1/check/serverdetect', (req, res) => {
     const playerIds = req.body?.playerIds || [];
     const gsid = playerIds.length > 0 ? playerIds[0] : "";
@@ -50,6 +55,8 @@ app.post('/logapi/v1/check/serverdetect', (req, res) => {
         status: 1
     });
 });
+
+// --- Existing Routes & System Handlers ---
 
 app.use('/', routes);
 app.use('/', Health);
